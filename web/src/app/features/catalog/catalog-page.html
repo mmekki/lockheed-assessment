@@ -1,0 +1,100 @@
+<section class="space-y-8">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">Your store</p>
+      <h1 class="m-0 text-4xl font-semibold tracking-tight">Book catalog</h1>
+      <p class="mb-0 mt-3 text-lg text-muted-color">
+        Every book here is a local snapshot owned by your store.
+      </p>
+    </div>
+    <a
+      routerLink="/discover"
+      class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-contrast no-underline"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add a book
+    </a>
+  </div>
+
+  @if (error()) {
+    <div
+      class="flex items-center justify-between gap-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800"
+    >
+      <span>{{ error() }}</span>
+      <p-button label="Retry" severity="danger" [text]="true" (onClick)="loadBooks()" />
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (item of [1, 2, 3]; track item) {
+        <p-card>
+          <p-skeleton height="15rem" styleClass="mb-4" />
+          <p-skeleton width="70%" styleClass="mb-3" />
+          <p-skeleton width="45%" />
+        </p-card>
+      }
+    </div>
+  } @else if (books().length === 0) {
+    <div class="rounded-2xl border border-dashed border-surface-300 bg-surface-0 p-12 text-center">
+      <i class="pi pi-book mb-4 text-5xl text-primary" aria-hidden="true"></i>
+      <h2 class="m-0 text-2xl">Your catalog is empty</h2>
+      <p class="mx-auto mb-6 mt-3 max-w-xl text-muted-color">
+        Search Open Library for a real book, then add your store's genre, price, and stock.
+      </p>
+      <a routerLink="/discover" class="font-semibold text-primary">Find your first book</a>
+    </div>
+  } @else {
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (book of books(); track book.id) {
+        <p-card styleClass="h-full overflow-hidden">
+          <div class="flex h-full flex-col gap-5">
+            <div class="flex gap-4">
+              @if (book.coverUrl) {
+                <img
+                  [src]="book.coverUrl"
+                  [alt]="'Cover of ' + book.title"
+                  class="h-40 w-28 rounded-lg bg-surface-100 object-cover shadow-sm"
+                />
+              } @else {
+                <div
+                  class="flex h-40 w-28 shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-400"
+                >
+                  <i class="pi pi-book text-3xl" aria-hidden="true"></i>
+                </div>
+              }
+
+              <div class="min-w-0 flex-1">
+                <p-tag [value]="formatGenre(book.genre)" severity="secondary" />
+                <h2 class="mb-1 mt-3 text-xl leading-tight">{{ book.title }}</h2>
+                <p class="m-0 text-muted-color">{{ book.author }}</p>
+                @if (book.publishedYear) {
+                  <p class="mb-0 mt-2 text-sm text-muted-color">
+                    First published {{ book.publishedYear }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="mt-auto flex items-end justify-between border-t border-surface pt-4">
+              <div>
+                <strong class="text-2xl text-primary">{{ book.price | currency: 'USD' }}</strong>
+                <span class="mt-1 block text-sm text-muted-color">
+                  {{ book.stock === null ? 'Stock not tracked' : book.stock + ' in stock' }}
+                </span>
+              </div>
+              <p-button
+                icon="pi pi-trash"
+                ariaLabel="Remove book"
+                severity="danger"
+                [text]="true"
+                [loading]="deletingId() === book.id"
+                (onClick)="deleteBook(book)"
+              />
+            </div>
+          </div>
+        </p-card>
+      }
+    </div>
+  }
+</section>

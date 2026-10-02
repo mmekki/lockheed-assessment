@@ -50,6 +50,8 @@ npm start
 
 The web client listens on `http://localhost:4200`.
 
+The Angular development server proxies `/api` requests to `http://localhost:5080`, so both projects should be running while using the application. The catalog is available at `/`; use `/discover` to search Open Library and import a selected result.
+
 ## Configuration and secrets
 
 The application requires no secrets or API keys. Open Library does not require an API key. The default SQLite connection creates `bookstore.db` locally. Safe development defaults belong in `appsettings.Development.json`; sensitive values must use environment variables or ASP.NET Core user secrets and must never be committed.
@@ -70,4 +72,4 @@ npm run build
 
 ## Current status
 
-The API supports Open Library discovery and a complete local import/read/update/delete workflow. The Angular catalog and import screens are the next increment.
+The end-to-end catalog and import workflow is implemented. The next increments will add local book editing, broader component coverage, CI, and final submission documentation.

@@ -1,0 +1,173 @@
+<section class="space-y-8">
+  <div>
+    <a
+      routerLink="/"
+      class="inline-flex items-center gap-2 text-sm font-semibold text-primary no-underline"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back to your store
+    </a>
+    <p class="mb-2 mt-8 text-sm font-semibold uppercase tracking-widest text-primary">
+      Open Library
+    </p>
+    <h1 class="m-0 text-4xl font-semibold tracking-tight">Find a book to import</h1>
+    <p class="mb-0 mt-3 max-w-2xl text-lg text-muted-color">
+      Search the public catalog, select one result, then add the details that belong to your store.
+    </p>
+  </div>
+
+  <form class="flex flex-col gap-3 sm:flex-row" (ngSubmit)="search()">
+    <label class="sr-only" for="book-search">Title, author, or ISBN</label>
+    <input
+      pInputText
+      id="book-search"
+      name="query"
+      class="w-full"
+      placeholder="Try The Hobbit, Octavia Butler, or an ISBN"
+      [(ngModel)]="query"
+      [disabled]="searching()"
+    />
+    <p-button type="submit" label="Search" icon="pi pi-search" [loading]="searching()" />
+  </form>
+
+  @if (error()) {
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{{ error() }}</div>
+  }
+
+  <div class="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div>
+      @if (searchAttempted() && !searching()) {
+        <p class="mt-0 text-sm text-muted-color">
+          {{ total() | number }} results found; showing the first {{ results().length }}.
+        </p>
+      }
+
+      @if (searchAttempted() && !searching() && results().length === 0) {
+        <div
+          class="rounded-2xl border border-dashed border-surface-300 bg-surface-0 p-10 text-center"
+        >
+          <h2 class="m-0 text-xl">No matching books</h2>
+          <p class="mb-0 mt-2 text-muted-color">
+            Try a broader title, author name, or another ISBN.
+          </p>
+        </div>
+      }
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        @for (book of results(); track book.openLibraryKey) {
+          <button
+            type="button"
+            class="rounded-xl border bg-surface-0 p-4 text-left transition hover:border-primary hover:shadow-sm"
+            [class.border-primary]="selectedBook()?.openLibraryKey === book.openLibraryKey"
+            [class.border-surface]="selectedBook()?.openLibraryKey !== book.openLibraryKey"
+            (click)="selectBook(book)"
+          >
+            <span class="flex gap-4">
+              @if (book.coverUrl) {
+                <img
+                  [src]="book.coverUrl"
+                  [alt]="'Cover of ' + book.title"
+                  class="h-32 w-24 shrink-0 rounded-md bg-surface-100 object-cover"
+                />
+              } @else {
+                <span
+                  class="flex h-32 w-24 shrink-0 items-center justify-center rounded-md bg-surface-100"
+                >
+                  <i class="pi pi-book text-2xl text-surface-400" aria-hidden="true"></i>
+                </span>
+              }
+              <span class="min-w-0">
+                <strong class="block text-lg leading-tight text-color">{{ book.title }}</strong>
+                <span class="mt-2 block text-sm text-muted-color">{{ book.author }}</span>
+                @if (book.publishedYear) {
+                  <span class="mt-2 block text-xs text-muted-color"
+                    >First published {{ book.publishedYear }}</span
+                  >
+                }
+                @if (book.isbn) {
+                  <span class="mt-1 block text-xs text-muted-color">ISBN {{ book.isbn }}</span>
+                }
+              </span>
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <aside class="lg:sticky lg:top-6">
+      <p-card header="Store details">
+        @if (selectedBook(); as book) {
+          <p class="mt-0 font-semibold">{{ book.title }}</p>
+          <form class="space-y-5" [formGroup]="importForm" (ngSubmit)="importBook()">
+            <div>
+              <label class="mb-2 block text-sm font-semibold" for="genre">Genre</label>
+              <p-select
+                inputId="genre"
+                formControlName="genre"
+                [options]="genres"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold" for="price">Price (USD)</label>
+              <p-inputnumber
+                inputId="price"
+                formControlName="price"
+                mode="currency"
+                currency="USD"
+                locale="en-US"
+                [min]="0"
+                [maxFractionDigits]="2"
+                styleClass="w-full"
+              />
+              @if (importForm.controls.price.touched && importForm.controls.price.invalid) {
+                <small class="mt-1 block text-red-600">Enter a non-negative price.</small>
+              }
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold" for="stock">Stock (optional)</label>
+              <p-inputnumber
+                inputId="stock"
+                formControlName="stock"
+                [min]="0"
+                [useGrouping]="false"
+                styleClass="w-full"
+              />
+            </div>
+
+            <div>
+              <label class="mb-2 block text-sm font-semibold" for="description"
+                >Description (optional)</label
+              >
+              <textarea
+                pTextarea
+                id="description"
+                formControlName="description"
+                rows="5"
+                class="w-full resize-y"
+                placeholder="Add a store description"
+              ></textarea>
+            </div>
+
+            <p-button
+              type="submit"
+              label="Add to store"
+              icon="pi pi-check"
+              styleClass="w-full"
+              [loading]="importing()"
+            />
+          </form>
+        } @else {
+          <div class="py-8 text-center text-muted-color">
+            <i class="pi pi-arrow-left mb-3 block text-2xl" aria-hidden="true"></i>
+            Select a search result to continue.
+          </div>
+        }
+      </p-card>
+    </aside>
+  </div>
+</section>
