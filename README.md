@@ -20,6 +20,8 @@ From the repository root:
 
 ```powershell
 dotnet restore api/BookStore.slnx --configfile NuGet.Config
+dotnet tool restore
+dotnet tool run dotnet-ef database update --project api/BookStore.Api
 dotnet run --project api/BookStore.Api --launch-profile http
 ```
 
@@ -39,7 +41,7 @@ The web client listens on `http://localhost:4200`.
 
 ## Configuration and secrets
 
-The initial scaffold requires no secrets or API keys. Open Library does not require an API key. Safe development defaults belong in `appsettings.Development.json`; sensitive values must use environment variables or ASP.NET Core user secrets and must never be committed.
+The application requires no secrets or API keys. Open Library does not require an API key. The default SQLite connection creates `bookstore.db` locally. Safe development defaults belong in `appsettings.Development.json`; sensitive values must use environment variables or ASP.NET Core user secrets and must never be committed.
 
 ASP.NET Core configuration keys can be supplied as environment variables by replacing nested separators with double underscores. For example, the future `OpenLibrary:BaseUrl` setting can be overridden with `OpenLibrary__BaseUrl`.
 
@@ -56,4 +58,4 @@ npm run build
 
 ## Current status
 
-The repository foundation is complete. Book persistence, Open Library discovery, and the import workflow will be added in subsequent incremental commits.
+The repository foundation and SQLite book model are complete. Open Library discovery and the import workflow will be added in subsequent incremental commits.

@@ -1,7 +1,18 @@
+using System.Text.Json.Serialization;
+using BookStore.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<BookStoreDbContext>(options =>
+    options.UseSqlite(
+        builder.Configuration.GetConnectionString("BookStore")
+        ?? throw new InvalidOperationException("The BookStore database connection is not configured.")));
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("WebClient", policy =>
