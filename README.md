@@ -5,6 +5,7 @@ Book Store is a two-project application for finding real books through Open Libr
 ## Repository structure
 
 - `api/BookStore.Api` — ASP.NET Core REST API targeting .NET 10
+- `api/BookStore.Api.Tests` — isolated API and integration-boundary tests
 - `web` — Angular 21 client with PrimeNG 21 and Tailwind CSS 4
 
 ## Prerequisites
@@ -43,7 +44,7 @@ The web client listens on `http://localhost:4200`.
 
 The application requires no secrets or API keys. Open Library does not require an API key. The default SQLite connection creates `bookstore.db` locally. Safe development defaults belong in `appsettings.Development.json`; sensitive values must use environment variables or ASP.NET Core user secrets and must never be committed.
 
-ASP.NET Core configuration keys can be supplied as environment variables by replacing nested separators with double underscores. For example, the future `OpenLibrary:BaseUrl` setting can be overridden with `OpenLibrary__BaseUrl`.
+ASP.NET Core configuration keys can be supplied as environment variables by replacing nested separators with double underscores. For example, `OpenLibrary:BaseUrl` can be overridden with `OpenLibrary__BaseUrl`.
 
 Local `.env` files, SQLite databases, build output, and IDE state are ignored by Git.
 
@@ -51,6 +52,7 @@ Local `.env` files, SQLite databases, build output, and IDE state are ignored by
 
 ```powershell
 dotnet build api/BookStore.slnx --no-restore
+dotnet test api/BookStore.slnx --no-restore
 cd web
 npm test -- --watch=false
 npm run build
@@ -58,4 +60,4 @@ npm run build
 
 ## Current status
 
-The repository foundation and SQLite book model are complete. Open Library discovery and the import workflow will be added in subsequent incremental commits.
+The repository foundation, SQLite book model, and normalized Open Library discovery client are complete. The import workflow will be added in subsequent incremental commits.

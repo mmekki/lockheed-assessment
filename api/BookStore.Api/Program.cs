@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using BookStore.Api.Data;
+using BookStore.Api.Integrations.OpenLibrary;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,14 @@ builder.Services.AddDbContext<BookStoreDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("BookStore")
         ?? throw new InvalidOperationException("The BookStore database connection is not configured.")));
+builder.Services.AddHttpClient<IOpenLibraryClient, OpenLibraryClient>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["OpenLibrary:BaseUrl"]
+        ?? throw new InvalidOperationException("The Open Library base URL is not configured."));
+    client.Timeout = TimeSpan.FromSeconds(10);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("BookStoreAssessment/1.0");
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("WebClient", policy =>
