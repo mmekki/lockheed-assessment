@@ -70,6 +70,30 @@ public sealed class OpenLibraryClientTests
         Assert.Null(book.CoverUrl);
     }
 
+    [Fact]
+    public async Task DownloadCoverAsync_DownloadsOnlyTrustedImageUrls()
+    {
+        var expectedContent = new byte[] { 1, 2, 3, 4 };
+        var handler = new StubHttpMessageHandler(expectedContent, "image/jpeg");
+        var client = CreateClient(handler);
+
+        var cover = await client.DownloadCoverAsync(
+            "https://covers.openlibrary.org/b/id/8739161-M.jpg?default=false",
+            CancellationToken.None);
+
+        Assert.NotNull(cover);
+        Assert.Equal(expectedContent, cover.Content);
+        Assert.Equal("image/jpeg", cover.ContentType);
+        Assert.Equal(1, handler.SendCount);
+
+        var untrustedCover = await client.DownloadCoverAsync(
+            "https://example.com/not-a-cover.jpg",
+            CancellationToken.None);
+
+        Assert.Null(untrustedCover);
+        Assert.Equal(1, handler.SendCount);
+    }
+
     private static OpenLibraryClient CreateClient(HttpMessageHandler handler)
     {
         var httpClient = new HttpClient(handler)
@@ -80,19 +104,42 @@ public sealed class OpenLibraryClientTests
         return new OpenLibraryClient(httpClient);
     }
 
-    private sealed class StubHttpMessageHandler(string content) : HttpMessageHandler
+    private sealed class StubHttpMessageHandler : HttpMessageHandler
     {
+        private readonly byte[] content;
+        private readonly string contentType;
+
+        public StubHttpMessageHandler(string content)
+            : this(Encoding.UTF8.GetBytes(content), "application/json")
+        {
+        }
+
+        public StubHttpMessageHandler(byte[] content, string contentType)
+        {
+            this.content = content;
+            this.contentType = contentType;
+        }
+
         public Uri? RequestUri { get; private set; }
+
+        public int SendCount { get; private set; }
 
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             RequestUri = request.RequestUri;
+            SendCount++;
 
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(content, Encoding.UTF8, "application/json")
+                Content = new ByteArrayContent(content)
+                {
+                    Headers =
+                    {
+                        ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType)
+                    }
+                }
             });
         }
     }

@@ -30,6 +30,9 @@ public sealed class BookConfiguration : IEntityTypeConfiguration<Book>
         builder.Property(book => book.CoverUrl)
             .HasMaxLength(1_000);
 
+        builder.Property(book => book.CoverContentType)
+            .HasMaxLength(100);
+
         builder.Property(book => book.OpenLibraryKey)
             .HasMaxLength(100)
             .IsRequired();

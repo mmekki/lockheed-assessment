@@ -7,4 +7,8 @@ public interface IOpenLibraryClient
         int page,
         int pageSize,
         CancellationToken cancellationToken);
+
+    Task<OpenLibraryCover?> DownloadCoverAsync(
+        string? coverUrl,
+        CancellationToken cancellationToken);
 }

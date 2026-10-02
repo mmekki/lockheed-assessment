@@ -28,6 +28,16 @@ dotnet run --project api/BookStore.Api --launch-profile http
 
 The API listens on `http://localhost:5080`. Its health endpoint is `http://localhost:5080/health`, and its development OpenAPI document is `http://localhost:5080/openapi/v1.json`.
 
+Core endpoints:
+
+- `GET /api/v1/discovery/books?query=...` searches Open Library without persisting results.
+- `POST /api/v1/books` imports a selected result with its store-owned genre, price, and stock.
+- `GET /api/v1/books` and `GET /api/v1/books/{id}` read only from SQLite.
+- `PUT /api/v1/books/{id}` updates store-owned fields and the optional description.
+- `DELETE /api/v1/books/{id}` removes a locally owned book.
+
+Cover images are downloaded once during import, stored in SQLite, and served from `GET /api/v1/books/{id}/cover`. Imported-book pages therefore do not depend on Open Library being available.
+
 ## Run the web client
 
 From the repository root:
@@ -60,4 +70,4 @@ npm run build
 
 ## Current status
 
-The repository foundation, SQLite book model, and normalized Open Library discovery client are complete. The import workflow will be added in subsequent incremental commits.
+The API supports Open Library discovery and a complete local import/read/update/delete workflow. The Angular catalog and import screens are the next increment.

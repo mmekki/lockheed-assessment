@@ -27,6 +27,13 @@ namespace BookStore.Api.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CoverContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("CoverImage")
+                        .HasColumnType("BLOB");
+
                     b.Property<string>("CoverUrl")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");

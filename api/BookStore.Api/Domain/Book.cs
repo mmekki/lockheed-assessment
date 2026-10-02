@@ -14,6 +14,10 @@ public sealed class Book
 
     public string? CoverUrl { get; set; }
 
+    public byte[]? CoverImage { get; set; }
+
+    public string? CoverContentType { get; set; }
+
     public required string OpenLibraryKey { get; set; }
 
     public string? Description { get; set; }

@@ -6,6 +6,7 @@ namespace BookStore.Api.Integrations.OpenLibrary;
 public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClient
 {
     private const string Fields = "key,title,author_name,isbn,first_publish_year,cover_i";
+    private const int MaximumCoverBytes = 2 * 1024 * 1024;
 
     public async Task<OpenLibrarySearchPage> SearchAsync(
         string query,
@@ -33,6 +34,72 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
             .ToArray();
 
         return new OpenLibrarySearchPage(response.Total, books);
+    }
+
+    public async Task<OpenLibraryCover?> DownloadCoverAsync(
+        string? coverUrl,
+        CancellationToken cancellationToken)
+    {
+        if (!IsAllowedCoverUrl(coverUrl, out var coverUri))
+        {
+            return null;
+        }
+
+        using var response = await httpClient.GetAsync(
+            coverUri,
+            HttpCompletionOption.ResponseHeadersRead,
+            cancellationToken);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        if (contentType is null || !contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException("Open Library returned a non-image cover response.");
+        }
+
+        if (response.Content.Headers.ContentLength > MaximumCoverBytes)
+        {
+            throw new InvalidDataException("The Open Library cover exceeds the allowed size.");
+        }
+
+        await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var destination = new MemoryStream();
+        var buffer = new byte[16 * 1024];
+
+        while (true)
+        {
+            var bytesRead = await source.ReadAsync(buffer, cancellationToken);
+            if (bytesRead == 0)
+            {
+                break;
+            }
+
+            if (destination.Length + bytesRead > MaximumCoverBytes)
+            {
+                throw new InvalidDataException("The Open Library cover exceeds the allowed size.");
+            }
+
+            await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+        }
+
+        return new OpenLibraryCover(destination.ToArray(), contentType);
+    }
+
+    private static bool IsAllowedCoverUrl(string? coverUrl, out Uri coverUri)
+    {
+        var isAllowed = Uri.TryCreate(coverUrl, UriKind.Absolute, out var parsedUri) &&
+            parsedUri.Scheme == Uri.UriSchemeHttps &&
+            parsedUri.Host.Equals("covers.openlibrary.org", StringComparison.OrdinalIgnoreCase) &&
+            parsedUri.AbsolutePath.StartsWith("/b/id/", StringComparison.OrdinalIgnoreCase);
+
+        coverUri = parsedUri ?? new Uri("https://covers.openlibrary.org/");
+        return isAllowed;
     }
 
     private static OpenLibraryBook MapBook(OpenLibrarySearchDocument document)

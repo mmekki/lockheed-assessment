@@ -11,3 +11,7 @@ public sealed record OpenLibraryBook(
     string? Isbn,
     int? PublishedYear,
     string? CoverUrl);
+
+public sealed record OpenLibraryCover(
+    byte[] Content,
+    string ContentType);

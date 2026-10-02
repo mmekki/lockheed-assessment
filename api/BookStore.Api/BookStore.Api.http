@@ -4,3 +4,31 @@ GET {{BookStore.Api_HostAddress}}/health
 Accept: application/json
 
 ###
+
+GET {{BookStore.Api_HostAddress}}/api/v1/discovery/books?query=fantastic%20mr%20fox&page=1&pageSize=5
+Accept: application/json
+
+###
+
+GET {{BookStore.Api_HostAddress}}/api/v1/books
+Accept: application/json
+
+###
+
+POST {{BookStore.Api_HostAddress}}/api/v1/books
+Content-Type: application/json
+
+{
+  "title": "Fantastic Mr. Fox",
+  "author": "Roald Dahl",
+  "isbn": "9780140328721",
+  "publishedYear": 1970,
+  "coverUrl": "https://covers.openlibrary.org/b/id/8739161-M.jpg?default=false",
+  "openLibraryKey": "/works/OL45804W",
+  "description": null,
+  "genre": "Children",
+  "price": 10.99,
+  "stock": 5
+}
+
+###
