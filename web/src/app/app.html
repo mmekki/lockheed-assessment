@@ -1,0 +1,31 @@
+<header class="border-b border-surface bg-surface-0">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a class="flex items-center gap-3 text-color no-underline" href="/">
+      <span
+        class="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-contrast"
+        aria-hidden="true"
+      >
+        <i class="pi pi-book text-lg"></i>
+      </span>
+      <span>
+        <strong class="block text-lg">Book Store</strong>
+        <small class="text-muted-color">Your catalog, built from real books</small>
+      </span>
+    </a>
+
+    <p-button label="Add a book" icon="pi pi-plus" [disabled]="true" />
+  </div>
+</header>
+
+<main class="mx-auto max-w-6xl px-6 py-16">
+  <section class="rounded-2xl border border-surface bg-surface-0 p-10 shadow-sm">
+    <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">Foundation ready</p>
+    <h1 class="m-0 text-4xl font-semibold tracking-tight text-color">Build your own bookstore catalog.</h1>
+    <p class="mt-4 max-w-2xl text-lg leading-8 text-muted-color">
+      Search Open Library, choose a real book, then add the genre, price, and stock details that
+      belong to your store.
+    </p>
+  </section>
+
+  <router-outlet />
+</main>

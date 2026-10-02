@@ -1,0 +1,29 @@
+# .NET
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Local application data
+*.db
+*.db-shm
+*.db-wal
+
+# Node and Angular
+**/node_modules/
+**/.angular/
+**/dist/
+**/coverage/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+
+# Editors and operating systems
+**/.vscode/
+.idea/
+.DS_Store
+Thumbs.db
