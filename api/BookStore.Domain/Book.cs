@@ -1,4 +1,4 @@
-namespace BookStore.Api.Domain;
+namespace BookStore.Domain;
 
 public sealed class Book
 {

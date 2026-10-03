@@ -1,8 +1,8 @@
-using BookStore.Api.Domain;
+using BookStore.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace BookStore.Api.Data.Configurations;
+namespace BookStore.Infrastructure.Persistence.Configurations;
 
 public sealed class BookConfiguration : IEntityTypeConfiguration<Book>
 {

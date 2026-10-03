@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text;
-using BookStore.Api.Integrations.OpenLibrary;
+using BookStore.Infrastructure.Catalog;
 
 namespace BookStore.Api.Tests.Integrations.OpenLibrary;
 

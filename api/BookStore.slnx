@@ -1,4 +1,7 @@
 <Solution>
+  <Project Path="BookStore.Application/BookStore.Application.csproj" />
   <Project Path="BookStore.Api.Tests/BookStore.Api.Tests.csproj" />
   <Project Path="BookStore.Api/BookStore.Api.csproj" />
+  <Project Path="BookStore.Domain/BookStore.Domain.csproj" />
+  <Project Path="BookStore.Infrastructure/BookStore.Infrastructure.csproj" />
 </Solution>

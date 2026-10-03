@@ -1,14 +1,16 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using BookStore.Application.Abstractions.Catalog;
 
-namespace BookStore.Api.Integrations.OpenLibrary;
+namespace BookStore.Infrastructure.Catalog;
 
-public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClient
+public sealed class OpenLibraryClient(HttpClient httpClient) : IBookCatalog
 {
     private const string Fields = "key,title,author_name,isbn,first_publish_year,cover_i";
     private const int MaximumCoverBytes = 2 * 1024 * 1024;
 
-    public async Task<OpenLibrarySearchPage> SearchAsync(
+    public async Task<CatalogSearchPage> SearchAsync(
         string query,
         int page,
         int pageSize,
@@ -17,13 +19,27 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
         var path = $"search.json?q={Uri.EscapeDataString(query)}" +
             $"&fields={Fields}&page={page}&limit={pageSize}";
 
-        var response = await httpClient.GetFromJsonAsync<OpenLibrarySearchResponse>(
-            path,
-            cancellationToken);
+        OpenLibrarySearchResponse? response;
+        try
+        {
+            response = await httpClient.GetFromJsonAsync<OpenLibrarySearchResponse>(
+                path,
+                cancellationToken);
+        }
+        catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new CatalogTimeoutException(exception);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or JsonException)
+        {
+            throw new CatalogUnavailableException(
+                "Open Library returned an invalid or unsuccessful response.",
+                exception);
+        }
 
         if (response is null)
         {
-            throw new InvalidDataException("Open Library returned an empty response.");
+            throw new CatalogUnavailableException("Open Library returned an empty response.");
         }
 
         var books = response.Documents
@@ -33,10 +49,30 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
             .Select(MapBook)
             .ToArray();
 
-        return new OpenLibrarySearchPage(response.Total, books);
+        return new CatalogSearchPage(response.Total, books);
     }
 
-    public async Task<OpenLibraryCover?> DownloadCoverAsync(
+    public async Task<CatalogCover?> DownloadCoverAsync(
+        string? coverUrl,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await DownloadCoverCoreAsync(coverUrl, cancellationToken);
+        }
+        catch (OperationCanceledException exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new CatalogTimeoutException(exception);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidDataException)
+        {
+            throw new CatalogUnavailableException(
+                "Open Library could not provide the selected cover.",
+                exception);
+        }
+    }
+
+    private async Task<CatalogCover?> DownloadCoverCoreAsync(
         string? coverUrl,
         CancellationToken cancellationToken)
     {
@@ -88,7 +124,7 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
             await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
         }
 
-        return new OpenLibraryCover(destination.ToArray(), contentType);
+        return new CatalogCover(destination.ToArray(), contentType);
     }
 
     private static bool IsAllowedCoverUrl(string? coverUrl, out Uri coverUri)
@@ -102,7 +138,7 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
         return isAllowed;
     }
 
-    private static OpenLibraryBook MapBook(OpenLibrarySearchDocument document)
+    private static CatalogBook MapBook(OpenLibrarySearchDocument document)
     {
         var author = document.AuthorNames.Count > 0
             ? string.Join(", ", document.AuthorNames)
@@ -112,7 +148,7 @@ public sealed class OpenLibraryClient(HttpClient httpClient) : IOpenLibraryClien
             ? $"https://covers.openlibrary.org/b/id/{coverId}-M.jpg?default=false"
             : null;
 
-        return new OpenLibraryBook(
+        return new CatalogBook(
             document.Key!,
             document.Title!,
             author,

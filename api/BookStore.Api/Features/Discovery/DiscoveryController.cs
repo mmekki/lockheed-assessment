@@ -1,11 +1,13 @@
-using BookStore.Api.Integrations.OpenLibrary;
+using BookStore.Application.Abstractions.Catalog;
+using BookStore.Application.Abstractions.Messaging;
+using BookStore.Application.Features.Catalog.SearchCatalog;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookStore.Api.Features.Discovery;
 
 [ApiController]
 [Route("api/v1/discovery/books")]
-public sealed class DiscoveryController(IOpenLibraryClient openLibraryClient) : ControllerBase
+public sealed class DiscoveryController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType<BookSearchResponse>(StatusCodes.Status200OK)]
@@ -35,10 +37,8 @@ public sealed class DiscoveryController(IOpenLibraryClient openLibraryClient) : 
 
         try
         {
-            var result = await openLibraryClient.SearchAsync(
-                query.Trim(),
-                page,
-                pageSize,
+            var result = await mediator.Send(
+                new SearchCatalogQuery(query, page, pageSize),
                 cancellationToken);
 
             return Ok(new BookSearchResponse(
@@ -48,13 +48,13 @@ public sealed class DiscoveryController(IOpenLibraryClient openLibraryClient) : 
                 result.Total,
                 result.Books));
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (CatalogTimeoutException)
         {
             return Problem(
                 statusCode: StatusCodes.Status504GatewayTimeout,
                 title: "Open Library did not respond in time.");
         }
-        catch (HttpRequestException)
+        catch (CatalogUnavailableException)
         {
             return Problem(
                 statusCode: StatusCodes.Status502BadGateway,
@@ -68,4 +68,4 @@ public sealed record BookSearchResponse(
     int Page,
     int PageSize,
     int Total,
-    IReadOnlyList<OpenLibraryBook> Items);
+    IReadOnlyList<CatalogBook> Items);

@@ -1,12 +1,21 @@
 # Book Store
 
-Book Store is a two-project application for finding real books through Open Library and importing selected books into a store-owned SQLite catalog. Once imported, a book is served entirely from the local store.
+Book Store is an Angular and ASP.NET Core application for finding real books through Open Library and importing selected books into a store-owned SQLite catalog. Once imported, a book is served entirely from the local store.
 
 ## Repository structure
 
-- `api/BookStore.Api` — ASP.NET Core REST API targeting .NET 10
-- `api/BookStore.Api.Tests` — isolated API and integration-boundary tests
+- `api/BookStore.Domain` — framework-independent entities and domain types
+- `api/BookStore.Application` — application ports plus CQRS feature slices and handlers
+- `api/BookStore.Infrastructure` — EF Core/SQLite persistence and Open Library adapters
+- `api/BookStore.Api` — ASP.NET Core transport and dependency-composition layer
+- `api/BookStore.Api.Tests` — application-handler and integration-boundary tests
 - `web` — Angular 21 client with PrimeNG 21 and Tailwind CSS 4
+
+The API follows Clean Architecture dependency direction: Domain has no project dependencies,
+Application depends only on Domain, Infrastructure implements Application ports, and API is the
+outer composition layer. Application behavior is organized as vertical CQRS slices under
+`BookStore.Application/Features`; controllers send requests through the in-process mediator and
+do not access EF Core or Open Library directly.
 
 ## Prerequisites
 
@@ -22,7 +31,7 @@ From the repository root:
 ```powershell
 dotnet restore api/BookStore.slnx --configfile NuGet.Config
 dotnet tool restore
-dotnet tool run dotnet-ef database update --project api/BookStore.Api
+dotnet tool run dotnet-ef database update --project api/BookStore.Infrastructure --startup-project api/BookStore.Api
 dotnet run --project api/BookStore.Api --launch-profile http
 ```
 

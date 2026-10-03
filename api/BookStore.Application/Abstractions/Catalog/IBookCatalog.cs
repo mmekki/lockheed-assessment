@@ -1,14 +1,14 @@
-namespace BookStore.Api.Integrations.OpenLibrary;
+namespace BookStore.Application.Abstractions.Catalog;
 
-public interface IOpenLibraryClient
+public interface IBookCatalog
 {
-    Task<OpenLibrarySearchPage> SearchAsync(
+    Task<CatalogSearchPage> SearchAsync(
         string query,
         int page,
         int pageSize,
         CancellationToken cancellationToken);
 
-    Task<OpenLibraryCover?> DownloadCoverAsync(
+    Task<CatalogCover?> DownloadCoverAsync(
         string? coverUrl,
         CancellationToken cancellationToken);
 }

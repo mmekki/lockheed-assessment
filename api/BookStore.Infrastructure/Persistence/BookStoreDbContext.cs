@@ -1,7 +1,7 @@
-using BookStore.Api.Domain;
+using BookStore.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookStore.Api.Data;
+namespace BookStore.Infrastructure.Persistence;
 
 public sealed class BookStoreDbContext(DbContextOptions<BookStoreDbContext> options)
     : DbContext(options)

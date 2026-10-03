@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using BookStore.Api.Domain;
+using BookStore.Domain;
 
 namespace BookStore.Api.Features.Books;
 
@@ -68,7 +68,9 @@ public sealed record BookResponse(
         book.Author,
         book.Isbn,
         book.PublishedYear,
-        book.CoverUrl,
+        book.CoverImage is null || book.CoverContentType is null
+            ? book.CoverUrl
+            : $"/api/v1/books/{book.Id}/cover",
         book.OpenLibraryKey,
         book.Description,
         book.Genre,

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace BookStore.Api.Data.Migrations
+namespace BookStore.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
